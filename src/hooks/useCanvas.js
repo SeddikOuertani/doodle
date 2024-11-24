@@ -10,6 +10,7 @@ const useCanvas = ({
   onDrawEnd,
   onUndo,
   onRedo,
+  onStepAdded,
   onScreenSizeChanged
 }) => {
   const canvasRef = useRef(null);
@@ -18,6 +19,7 @@ const useCanvas = ({
   const { strokeWidths } = useStrokeWidth()
 
   useEffect(() => {
+    if (!canvasRef.current) return
     const canvas = canvasRef.current;
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
@@ -57,6 +59,10 @@ const useCanvas = ({
       onDrawEnd(ctx);
     };
 
+    const handleStepAdded = (event) => {
+      onStepAdded(ctx, event.detail.data)
+    }
+
     const handleKeyDown = (event) => {
       if (event.ctrlKey) {
         if (event.key.toLowerCase() === 'z') {
@@ -68,7 +74,7 @@ const useCanvas = ({
         }
       }
     };
-
+    
     const handleScreenResize = (event) => {
       let resizeTimeout
       clearTimeout(resizeTimeout);
@@ -84,6 +90,7 @@ const useCanvas = ({
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('colorchange', handleColorChange);
     document.addEventListener('strokewidthchange', handleStrokeWidthChange);
+    document.addEventListener('stepAdded', handleStepAdded);
     return () => {
       canvas.removeEventListener('mousedown', handleMouseDown);
       canvas.removeEventListener('mousemove', handleMouseMove);
@@ -93,7 +100,7 @@ const useCanvas = ({
       document.addEventListener('colorchange', handleColorChange);
       document.addEventListener('strokewidthchange', handleStrokeWidthChange);
     };
-  }, [onDrawStart, onDrawMove, onColorChange, onStrokeWidthChange, onDrawEnd, onUndo, onRedo, onScreenSizeChanged, colors, strokeWidths]);
+  }, [onDrawStart, onDrawMove, onColorChange, onStrokeWidthChange, onDrawEnd, onUndo, onRedo, onStepAdded, onScreenSizeChanged, strokeWidths, colors]);
 
   return canvasRef;
 };

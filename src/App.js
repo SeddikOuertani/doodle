@@ -2,8 +2,10 @@ import useCanvas from './hooks/useCanvas';
 import useDrawing from './hooks/useDrawing';
 import Controls from './components/controls';
 import Canvas from './components/DrawingCanvas';
+import useSocket from './hooks/useSocket';
 
 function App() {
+  const {socket, closeSocket} = useSocket()
   const {
     start,
     move,
@@ -12,8 +14,9 @@ function App() {
     end,
     undo,
     redo,
+    drawStep,
     changeCanvasSize
-  } = useDrawing();
+  } = useDrawing(socket);
 
   const canvasRef = useCanvas({
     onDrawStart: start,
@@ -23,15 +26,21 @@ function App() {
     onDrawEnd: end,
     onUndo: undo,
     onRedo: redo,
+    onStepAdded: drawStep,
     onScreenSizeChanged: changeCanvasSize
   })
 
-  return (
-    <div className="flex h-screen flex-col justify-start w-full h-full bg-slate-200">
-      <Canvas ref={canvasRef} />
-      <Controls />
+  
+  return  (
+    <div className="flex h-screen flex-col justify-start w-full h-full bg-slate-200"> 
+      {socket ? ( 
+        <>
+          <Canvas ref={canvasRef} />
+          <Controls />
+        </>
+      ) : <div/> }
     </div>
-  );
+  )
 }
 
 export default App;

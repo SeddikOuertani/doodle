@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-const useDrawing = () => {
+const useDrawing = (socket) => {
   const actionHistory = useRef([]);
   const actionFuture = useRef([]);
 
@@ -12,6 +12,10 @@ const useDrawing = () => {
     actionHistory.current.push(action);
     beginPath();
     moveTo();
+
+    // socket handling
+    socket.emit('step', {canvasFunction: 'beginPath', params:[], actionId: actionHistory.current.length - 1})
+    socket.emit('step', {canvasFunction: 'moveTo', params:[x, y], actionId: actionHistory.current.length - 1})
   };
 
   const move = (ctx, x, y) => {
@@ -22,6 +26,10 @@ const useDrawing = () => {
     actionHistory.current.push(action);
     lineTo();
     stroke();
+
+    // socket handling
+    socket.emit('step', {canvasFunction: 'lineTo', params:[x, y], actionId: actionHistory.current.length - 1})
+    socket.emit('step', {canvasFunction: 'stroke', params:[], actionId: actionHistory.current.length - 1})
   };
 
   const changeColor = (ctx, color) => {
@@ -30,6 +38,9 @@ const useDrawing = () => {
     action.push(colorChange);
     actionHistory.current.push(action);
     colorChange()
+
+    // socket handling
+    socket?.emit('step', {canvasAttribute: 'strokeStyle', value: color, actionId: actionHistory.current.length - 1})
   }
 
   const changeStrokeWidth = (ctx, strokeWidth) => {
@@ -38,6 +49,9 @@ const useDrawing = () => {
     action.push(strokeWidthChange);
     actionHistory.current.push(action);
     strokeWidthChange()
+
+    // socket handling
+    socket?.emit('step', {canvasAttribute: 'lineWidth', value: strokeWidth, actionId: actionHistory.current.length - 1})
   }
 
   const end = (ctx) => {
@@ -46,6 +60,9 @@ const useDrawing = () => {
     action.push(closePath);
     actionHistory.current.push(action);
     closePath();
+
+    // socket handling
+    socket.emit('step', { canvasFunction: 'closePath', params: [], actionId: actionHistory.current.length - 1 })
   };
 
   const undo = (ctx, color, strokeWidth) => {
@@ -57,6 +74,9 @@ const useDrawing = () => {
     // reset selected controls
     changeColor(ctx, color)
     changeStrokeWidth(ctx, strokeWidth)
+
+    // socket handling
+    socket?.emit('undo', { actionId: actionHistory.length})
   };
 
   const redo = (ctx) => {
@@ -64,7 +84,24 @@ const useDrawing = () => {
     const action = actionFuture.current.pop();
     action.forEach((step) => step());
     actionHistory.current.push(action);
+
+    // socket handling
+    socket?.emit('redo', {  actionId: actionFuture.current.length})
   };
+
+  const drawStep = (ctx, stepData) => {
+    if (!socket || stepData.userId === socket?.id) return
+    
+    let step
+    if (stepData.canvasFunction) {
+      step = () => {ctx[stepData.canvasFunction](...stepData.params)}
+    }
+    if (stepData.canvasAttribute) {
+      step = () => {ctx[stepData.canvasAttribute] = stepData.value}
+    }
+
+    step()
+  }
 
   const changeCanvasSize = (ctx) => {
     if (actionHistory.current.length === 0) return;
@@ -76,7 +113,7 @@ const useDrawing = () => {
     actionHistory.current.forEach((action) => action.forEach((step) => step()));
   };
 
-  return { start, move, changeColor, changeStrokeWidth, end, undo, redo, changeCanvasSize };
+  return { start, move, changeColor, changeStrokeWidth, end, undo, redo, changeCanvasSize, drawStep };
 };
 
 export default useDrawing

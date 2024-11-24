@@ -8,7 +8,6 @@ export const PopOver = forwardRef(({ show, children, controlRef }, ref) => {
   useEffect(() => {
     if (controlRef) {
       const boundingRect = controlRef.current.getBoundingClientRect()
-      console.log(boundingRect)
       setPosition({
         top: boundingRect.y,
         left: boundingRect.x
