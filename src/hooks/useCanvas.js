@@ -11,6 +11,7 @@ const useCanvas = ({
   onUndo,
   onRedo,
   onStepAdded,
+  onResetSteps,
   onScreenSizeChanged
 }) => {
   const canvasRef = useRef(null);
@@ -60,7 +61,13 @@ const useCanvas = ({
     };
 
     const handleStepAdded = (event) => {
-      onStepAdded(ctx, event.detail.data)
+      const ctx2 = canvas.getContext('2d');
+      onStepAdded(ctx2, event.detail.data, selectedColor, selectedStrokeWidth)
+    }
+
+    const handleStepsReset  = (event) => {
+      const ctx2 = canvas.getContext('2d');
+      onResetSteps(ctx2, event.detail.data, selectedColor, selectedStrokeWidth)
     }
 
     const handleKeyDown = (event) => {
@@ -91,6 +98,7 @@ const useCanvas = ({
     document.addEventListener('colorchange', handleColorChange);
     document.addEventListener('strokewidthchange', handleStrokeWidthChange);
     document.addEventListener('stepAdded', handleStepAdded);
+    document.addEventListener('stepsReset', handleStepsReset);
     return () => {
       canvas.removeEventListener('mousedown', handleMouseDown);
       canvas.removeEventListener('mousemove', handleMouseMove);
@@ -99,8 +107,9 @@ const useCanvas = ({
       document.removeEventListener('keydown', handleKeyDown);
       document.addEventListener('colorchange', handleColorChange);
       document.addEventListener('strokewidthchange', handleStrokeWidthChange);
+      document.addEventListener('stepsReset', handleStepsReset);
     };
-  }, [onDrawStart, onDrawMove, onColorChange, onStrokeWidthChange, onDrawEnd, onUndo, onRedo, onStepAdded, onScreenSizeChanged, strokeWidths, colors]);
+  }, [onDrawStart, onDrawMove, onColorChange, onStrokeWidthChange, onDrawEnd, onUndo, onRedo, onStepAdded, onResetSteps, onScreenSizeChanged, strokeWidths, colors]);
 
   return canvasRef;
 };

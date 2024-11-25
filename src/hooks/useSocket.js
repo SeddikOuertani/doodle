@@ -1,16 +1,9 @@
 import { io } from "socket.io-client";
 import { useEffect, useState } from "react";
+import { dispatchResetSteps, dispatchStepAddedEvent } from "../utils/customEvents";
 
 const apiUrl = process.env.REACT_APP_DOODLE_API;
 const apiPort = process.env.REACT_APP_DOODLE_API_PORT;
-
-
-const dispatchStepAddedEvent = (stepData) => {
-  const strokeWidthChangeEvent = new CustomEvent("stepAdded", {
-    detail: { message: `new Step added`, data: stepData }
-  });
-  document.dispatchEvent(strokeWidthChangeEvent)
-}
 
 const useSocket = () => {
   const [socket, setSocket] = useState(null)
@@ -20,8 +13,12 @@ const useSocket = () => {
     const newSocket = io(`${apiUrl}:${apiPort}`);
     setSocket(newSocket)
 
-    newSocket.on('stepadded', data => {
+    newSocket.on('steps/add', data => {
       dispatchStepAddedEvent(data)
+    })
+
+    newSocket.on('steps/reset', data => {
+      dispatchResetSteps(data)
     })
 
     return () => {

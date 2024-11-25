@@ -5,7 +5,7 @@ import Canvas from './components/DrawingCanvas';
 import useSocket from './hooks/useSocket';
 
 function App() {
-  const {socket, closeSocket} = useSocket()
+  const {socket} = useSocket()
   const {
     start,
     move,
@@ -15,6 +15,7 @@ function App() {
     undo,
     redo,
     drawStep,
+    resetSteps,
     changeCanvasSize
   } = useDrawing(socket);
 
@@ -27,6 +28,7 @@ function App() {
     onUndo: undo,
     onRedo: redo,
     onStepAdded: drawStep,
+    onResetSteps: resetSteps,
     onScreenSizeChanged: changeCanvasSize
   })
 

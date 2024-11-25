@@ -95,12 +95,19 @@ const useDrawing = (socket) => {
     let step
     if (stepData.canvasFunction) {
       step = () => {ctx[stepData.canvasFunction](...stepData.params)}
-    }
-    if (stepData.canvasAttribute) {
+    } else if (stepData.canvasAttribute) {
       step = () => {ctx[stepData.canvasAttribute] = stepData.value}
     }
-
     step()
+  }
+
+  const resetSteps = (ctx, steps) => {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    for (let stepData of steps) {
+      drawStep(ctx, stepData)
+    }
+
+    actionHistory.current.forEach((action) => action.forEach((step) => step()));
   }
 
   const changeCanvasSize = (ctx) => {
@@ -113,7 +120,7 @@ const useDrawing = (socket) => {
     actionHistory.current.forEach((action) => action.forEach((step) => step()));
   };
 
-  return { start, move, changeColor, changeStrokeWidth, end, undo, redo, changeCanvasSize, drawStep };
+  return { start, move, changeColor, changeStrokeWidth, end, undo, redo, changeCanvasSize, drawStep, resetSteps };
 };
 
 export default useDrawing
